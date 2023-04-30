@@ -8,7 +8,6 @@ mongoose.connect("mongodb://localhost/todo")
 
 
 const TodoSchema = new Schema({
-    _id: Number,
     title: { type: "string", required: true, minLength: 5, maxLength: 200 },
     start: { type: Date, default: Date.now },
     end: { type: Date, required: true },
