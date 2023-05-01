@@ -1,37 +1,42 @@
 const Todo = require('../models/todos');
+const todoValidator = require('../validators/todo');
 
 const getTodos = async (req, res) => {
-    const todos = await Todo.find().select("title start end");
+    const todos = await Todo.find().select("title startDate dueDate");
     res.send(todos);
 }
 
 const addTodos = async (req, res) => {
-    const { title, start, end } = req.body;
-    const todo = await Todo.create({
-        title: title,
-        end: Date.now()
-    })
-
-    res.send(todo);
+    try {
+        const value = await todoValidator.validateAsync(req.body);
+        const todo = await Todo.create(value);
+        res.send(todo);
+    } catch (err) {
+        console.error("Error", err);
+        return res.status(404).send(err);
+    }
 }
 
 const getTodoItem = async (req, res) => {
-    const todo = await Todo.findById(id=req.params.id).select("title start end");
+    const todo = await Todo.findById(id=req.params.id).select("title startDate dueDate");
 
     res.send(todo);
 }
 
 const updateTodoItem = async (req, res) => {
     const todo = await Todo.findById(id=req.params.id);
-    const { title, start, end } = req.body;
+    const { title, startDate, dueDate, completed } = req.body;
     if (title) {
         todo.title = title;
     }
-    if (start) {
-        todo.start = start;
+    if (startDate) {
+        todo.startDate = startDate;
     }
-    if (end) {
-        todo.end = end;
+    if (dueDate) {
+        todo.dueDate = dueDate;
+    }
+    if (completed) {
+        todo.completed = completed;
     }
 
     const result = await todo.save();
