@@ -2,50 +2,70 @@ const Todo = require('../models/todos');
 const todoValidator = require('../validators/todo');
 
 const getTodos = async (req, res) => {
-    const todos = await Todo.find().select("title startDate dueDate");
+    const todos = await Todo.find().select("title description startDate dueDate completed");
     res.send(todos);
 }
 
 const addTodos = async (req, res) => {
+    const { value, error } = todoValidator.validate(req.body);
+    if (error) {
+        return res.status(400).send(error.details[0].message);
+    }
     try {
-        const value = await todoValidator.validateAsync(req.body);
         const todo = await Todo.create(value);
         res.send(todo);
-    } catch (err) {
-        console.error("Error", err);
-        return res.status(404).send(err.message);
+    } catch(err) {
+        return res.status(400).send("Invalid input sent")
     }
 }
 
 const getTodoItem = async (req, res) => {
-    const todo = await Todo.findById(id=req.params.id).select("title startDate dueDate");
-
-    res.send(todo);
+    try {
+        const todo = await Todo.
+            findById(req.params.id).
+            select("title description startDate dueDate completed");
+        res.send(todo);
+    } catch (error) {
+        return res.status(404).send(`Not found with id: ${req.params.id}`);
+    }
 }
 
 const updateTodoItem = async (req, res) => {
-    const todo = await Todo.findById(id=req.params.id);
-    const { title, startDate, dueDate, completed } = req.body;
-    if (title) {
-        todo.title = title;
+    try {
+        const todo = await Todo.findById(id=req.params.id);
+        const { title, description, startDate, dueDate, completed } = req.body;
+        if (title) {
+            todo.title = title;
+        }
+        if (description) {
+            todo.description = description;
+        }
+        if (startDate) {
+            todo.startDate = startDate;
+        }
+        if (dueDate) {
+            todo.dueDate = dueDate;
+        }
+        if (completed) {
+            todo.completed = completed;
+        }
+    
+        const result = await todo.save();
+        res.send(result);
+    } catch (error) {
+        return res.status(404).send(`Not found with id: ${req.params.id}`);
     }
-    if (startDate) {
-        todo.startDate = startDate;
-    }
-    if (dueDate) {
-        todo.dueDate = dueDate;
-    }
-    if (completed) {
-        todo.completed = completed;
-    }
-
-    const result = await todo.save();
-    res.send(result);
 }
 
 const deleteTodoItem = async (req, res) => {
-    const todo = await Todo.findOneAndRemove(req.params.id).select('title start end');
-    res.send(todo);
+    try {
+        const todo = await Todo.
+            findOneAndDelete({ _id: req.params.id }).
+            select('title description startDate dueDate,  completed');
+        res.send(todo);
+    } catch (error) {
+        return res.status(404).send(`Not found with id: ${req.params.id}`);
+    }
 }
 
 exports.getTodos = getTodos;
