@@ -13,7 +13,7 @@ const addTodos = async (req, res) => {
         res.send(todo);
     } catch (err) {
         console.error("Error", err);
-        return res.status(404).send(err);
+        return res.status(404).send(err.message);
     }
 }
 
